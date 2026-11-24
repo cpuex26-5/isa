@@ -1,13 +1,17 @@
 //! The cpuex26-5 ISA, loaded from `isa.toml`.
 #![expect(dead_code, reason = "read by the doc generator")]
 
+mod format;
+
 use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer};
+
+use crate::format::Format;
 
 /// The ISA described by `isa.toml`.
 pub struct Isa {
     pub(crate) notation: Vec<Notation>,
-    pub(crate) formats: IndexMap<String, String>,
+    pub(crate) formats: Vec<Format>,
     pub(crate) registers: Registers,
     pub(crate) mmio: Vec<Mmio>,
     pub(crate) instructions: Vec<RawInstruction>,
@@ -19,9 +23,14 @@ impl Isa {
     /// Parses the text of an `isa.toml`.
     pub fn parse(src: &str) -> Result<Isa, Error> {
         let src: Source = toml::from_str(src)?;
+        let formats = src
+            .formats
+            .iter()
+            .map(|(name, layout)| Format::parse(name, layout, &src.fields))
+            .collect::<Result<_, _>>()?;
         Ok(Isa {
             notation: src.notation,
-            formats: src.formats,
+            formats,
             registers: src.registers,
             mmio: src.mmio,
             instructions: src.instructions,
