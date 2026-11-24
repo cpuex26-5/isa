@@ -1,0 +1,13 @@
+[package]
+name = "isa"
+version = "0.1.0"
+edition = "2024"
+description = "The cpuex26-5 ISA: loader of isa.toml and generator of its doc"
+repository = "https://github.com/cpuex26-5/isa"
+publish = false
+
+[dependencies]
+indexmap = { version = "2.14.2", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"
+toml = { version = "1.2.2", features = ["preserve_order"] }
