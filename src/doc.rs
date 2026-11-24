@@ -4,9 +4,9 @@ use std::collections::BTreeSet;
 
 use maud::{DOCTYPE, Markup, PreEscaped, html};
 
-use crate::Isa;
 use crate::format::{Format, SlotKind, format_bits};
 use crate::insn::{Candidate, Instruction, Operand};
+use crate::{Isa, Register};
 
 const CSS: &str = include_str!("doc.css");
 const FONTS: &str = "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap";
@@ -36,6 +36,17 @@ pub fn render(isa: &Isa, date: jiff::civil::Date, commit: Option<&str>) -> Strin
                     }
                     section #pg-ins { h2 { "命令一覧" } (instructions(isa, &cols)) }
                     section #pg-ps { h2 { "擬似命令" } (pseudos(isa)) }
+                    section #pg-abi {
+                        h2 { "ABI" }
+                        h3 { "レジスタ" }
+                        div.pg-regs { (registers("x", &isa.registers.x)) (registers("f", &isa.registers.f)) }
+                        h3 { "MMIO" }
+                        (mmio(isa))
+                        @for (k, note) in isa.notes.iter().enumerate() {
+                            h3 id={ "n-" (k) } { (note.title) }
+                            div.pg-note { (markdown(&note.body)) }
+                        }
+                    }
                 }
             }
         }
@@ -385,4 +396,60 @@ fn tokens(text: &str) -> Vec<&str> {
         tokens.push(&text[start..]);
     }
     tokens
+}
+
+fn registers(bank: &str, regs: &[Register]) -> Markup {
+    html! {
+        table.pg-t.pg-kv {
+            thead {
+                tr {
+                    th.l { "Register" }
+                    th.l { "ABI name" }
+                    th.l { "Role" }
+                    th.l { "Saver" }
+                }
+            }
+            tbody {
+                @for (num, reg) in regs.iter().enumerate() {
+                    tr {
+                        td.m { (bank) (num) }
+                        td.m { (reg.abi.join(", ")) }
+                        td.d { (reg.role) }
+                        td.d { @if let Some(saver) = reg.saver { (saver.as_str()) } }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn mmio(isa: &Isa) -> Markup {
+    html! {
+        table.pg-t.pg-kv {
+            thead {
+                tr {
+                    th.l { "Address" }
+                    th.l { "Name" }
+                    th.l { "Access" }
+                    th.l { "Description" }
+                }
+            }
+            tbody {
+                @for reg in &isa.mmio {
+                    tr {
+                        td.m { (format!("{:#010x}", reg.addr)) }
+                        td.m { (reg.name) }
+                        td.m { (reg.dir.as_str()) }
+                        td.d { (reg.desc) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn markdown(text: &str) -> Markup {
+    let mut html = String::new();
+    pulldown_cmark::html::push_html(&mut html, pulldown_cmark::Parser::new(text));
+    PreEscaped(html)
 }

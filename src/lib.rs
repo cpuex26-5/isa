@@ -1,5 +1,4 @@
 //! The cpuex26-5 ISA, loaded from `isa.toml`.
-#![expect(dead_code, reason = "read by the doc generator")]
 
 pub mod doc;
 mod format;
