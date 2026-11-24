@@ -7,7 +7,11 @@ repository = "https://github.com/cpuex26-5/isa"
 publish = false
 
 [dependencies]
+anyhow = "1.0.105"
+clap = { version = "4.6.9", features = ["derive"] }
 indexmap = { version = "2.14.2", features = ["serde"] }
+jiff = "1.0.3"
+maud = "0.27.0"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.21"
 toml = { version = "1.2.2", features = ["preserve_order"] }

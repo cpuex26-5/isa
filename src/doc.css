@@ -1,0 +1,62 @@
+body { margin:0; background:#fff; }
+.pg { --ink:#1d2228; --ink2:#4a525c; --ink3:#77808a; --line:#a3abb5; --fix:#eceef1;
+      --rd:#b5432a; --rs1:#1d4e89; --rs2:#2378b0; --imm:#3a7a30;
+      --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+      --sans:"IBM Plex Sans JP","Hiragino Sans",-apple-system,sans-serif;
+      background:#fff; color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55;
+      padding:26px 40px 44px; min-width:1280px; box-sizing:border-box; }
+.pg a { color:inherit; text-decoration:none; }
+.pg-top { display:flex; align-items:baseline; gap:30px; border-bottom:1px solid #c9ced6; padding-bottom:12px; }
+.pg-title { font-size:22px; font-weight:600; }
+.pg-top nav { display:flex; gap:20px; font-size:14px; color:var(--ink2); }
+.pg-top nav a:hover { color:#0969da; }
+.pg-meta { margin-left:auto; font-size:12.5px; color:var(--ink3); }
+.pg-meta a { color:#0969da; }
+.pg-meta a.sha { font-family:var(--mono); }
+.pg h2 { font-size:17px; font-weight:600; margin:28px 0 12px; }
+.pg h3 { font-size:15px; font-weight:600; margin:22px 0 10px; color:#34465a; }
+
+.t-rd { color:var(--rd); } .t-rs1 { color:var(--rs1); } .t-rs2 { color:var(--rs2); } .t-imm { color:var(--imm); }
+
+.pg-intro { display:grid; grid-template-columns:auto 1fr; gap:64px; }
+.pg-t { border-collapse:collapse; }
+.pg-t thead th { font:400 12px var(--mono); color:var(--ink3); padding:0 0 5px; text-align:center; white-space:nowrap; }
+.pg-t thead th.l { text-align:left; padding-left:18px; font-family:var(--sans); font-size:12.5px; font-weight:500; }
+.pg-t td.b { border:1px solid var(--line); text-align:center; font:13px/1.4 var(--mono); padding:4px 8px; white-space:nowrap; min-width:58px; }
+.pg-t td.b.fix { background:var(--fix); }
+.pg-t td.b.rd  { color:var(--rd);  font-style:italic; }
+.pg-t td.b.rs1 { color:var(--rs1); font-style:italic; }
+.pg-t td.b.rs2 { color:var(--rs2); font-style:italic; }
+.pg-t td.b.imm { color:var(--imm); font-style:italic; }
+.pg-fmt td.fname { border:none; font:600 14px var(--mono); padding-right:12px; text-align:right; }
+.pg-gloss { display:grid; grid-template-columns:max-content 1fr; gap:4px 22px; margin:0; font-size:14px; line-height:1.65; }
+.pg-gloss dt { font-family:var(--mono); font-size:13.5px; }
+.pg-gloss dd { margin:0; color:var(--ink2); }
+
+.pg-ins thead th, .pg-ps thead th { position:sticky; top:0; background:#fff; z-index:1; box-shadow:0 1px 0 #d0d7de; padding-top:8px; }
+.pg-ins th.fm { font-family:var(--sans); font-size:12.5px; font-weight:500; padding-right:6px; }
+.pg-ins td.fm { font:600 13.5px var(--mono); color:var(--ink2); text-align:center; padding:0 10px 0 0; }
+.pg-ins tr.sep td:not(.b) { border-top:1px solid #d0d7de; }
+.pg-ins td.syn, .pg-ins td.sem, .pg-ps td.syn, .pg-ps td.sem { font:14px var(--mono); padding:4px 0 4px 18px; white-space:nowrap; }
+.pg td.syn .mn { font-weight:700; }
+.pg td.syn a:hover .mn { color:#0969da; text-decoration:underline; }
+.pg td.desc { color:var(--ink3); font-size:14px; padding:4px 0 4px 18px; white-space:nowrap; }
+.pg-ins tr:hover td:not(.b):not(.fm), .pg-ps tr:hover td { background:#f4f6f9; }
+
+.pg-ps { min-width:1000px; }
+.pg-ps td { vertical-align:top; border-bottom:1px solid #edf0f3; }
+.pg-ps td.syn { padding-left:0; }
+.pg-ps thead th.l:first-child { padding-left:0; }
+.pg-ps td.exp { font:14px var(--mono); padding:4px 0 4px 18px; white-space:nowrap; }
+.pg-ps .xm { display:inline-block; min-width:6ch; font-weight:600; }
+.pg-ps .blk + .blk { margin-top:4px; padding-top:4px; border-top:1px dashed #e1e5ea; }
+.pg-ps .cmt { color:var(--ink3); margin-left:2.5ch; }
+
+.pg-regs { display:flex; gap:64px; align-items:flex-start; }
+.pg-kv td { font-size:14px; padding:2px 0 2px 18px; border-bottom:1px solid #edf0f3; white-space:nowrap; }
+.pg-kv td:first-child, .pg-kv th.l:first-child { padding-left:0; }
+.pg-kv td.m { font:13.5px var(--mono); }
+.pg-kv td.d { color:var(--ink2); }
+.pg-kv tr:hover td { background:#f4f6f9; }
+.pg-note { font-size:14.5px; color:var(--ink2); }
+.pg-note ul { margin:0; padding-left:1.4em; }
