@@ -6,7 +6,7 @@ use maud::{DOCTYPE, Markup, PreEscaped, html};
 
 use crate::Isa;
 use crate::format::{Format, SlotKind, format_bits};
-use crate::insn::Instruction;
+use crate::insn::{Candidate, Instruction, Operand};
 
 const CSS: &str = include_str!("doc.css");
 const FONTS: &str = "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap";
@@ -34,6 +34,8 @@ pub fn render(isa: &Isa, date: jiff::civil::Date, commit: Option<&str>) -> Strin
                         div { h2 { "命令形式" } (formats(isa, &cols)) }
                         div { h2 { "記法" } (notation(isa)) }
                     }
+                    section #pg-ins { h2 { "命令一覧" } (instructions(isa, &cols)) }
+                    section #pg-ps { h2 { "擬似命令" } (pseudos(isa)) }
                 }
             }
         }
@@ -253,4 +255,134 @@ fn ranges(isa: &Isa, word: &str) -> Vec<String> {
             )
         })
         .collect()
+}
+
+fn instructions(isa: &Isa, cols: &[(u32, u32)]) -> Markup {
+    html! {
+        table.pg-t.pg-ins {
+            thead {
+                tr {
+                    th.fm { "Format" }
+                    (column_heads(cols))
+                    th.l { "Instruction" }
+                    th.l { "Description" }
+                    th.l { "Operation" }
+                }
+            }
+            tbody {
+                @for (i, insn) in isa.instructions.iter().enumerate() {
+                    // A line above each row whose opcode differs from the previous row.
+                    @let sep = i > 0 && insn.field("opcode") != isa.instructions[i - 1].field("opcode");
+                    tr id={ "i-" (insn.name) } class=[sep.then_some("sep")] {
+                        td.fm { (insn.format.name) }
+                        (cells(&insn_cells(insn), cols))
+                        td.syn { a href={ "#i-" (insn.name) } { (syntax(&insn.name, &insn.operands)) } }
+                        td.desc { (insn.desc) }
+                        td.sem { (paint(&insn.op, &insn.operands)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn pseudos(isa: &Isa) -> Markup {
+    html! {
+        table.pg-t.pg-ps {
+            thead {
+                tr {
+                    th.l { "Pseudo-instruction" }
+                    th.l { "Description" }
+                    th.l { "Operation" }
+                    th.l { "Expansion" }
+                }
+            }
+            tbody {
+                @for ps in &isa.pseudo {
+                    tr id={ "p-" (ps.name) } {
+                        td.syn { a href={ "#p-" (ps.name) } { (syntax(&ps.name, &ps.operands)) } }
+                        td.desc { (ps.desc) }
+                        td.sem { (paint(&ps.op, &ps.operands)) }
+                        td.exp {
+                            @for cand in &ps.expand {
+                                div.blk {
+                                    @for (k, line) in cand.to.iter().enumerate() {
+                                        @let (mnemonic, rest) = line.split_once(' ').unwrap_or((line, ""));
+                                        div.ln {
+                                            span.xm { (mnemonic) }
+                                            (paint(rest, &ps.operands))
+                                            @if ps.expand.len() > 1 && k == 0 {
+                                                span.cmt { (condition(isa, cand)) }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// The comment on the first line of an expansion candidate.
+fn condition(isa: &Isa, cand: &Candidate) -> String {
+    let Some(fits) = &cand.cond else {
+        return "# otherwise".to_owned();
+    };
+    match isa.instruction(&fits.insn).and_then(Instruction::range) {
+        Some(range) => format!("# if {fits} {range}"),
+        None => format!("# if {fits}"),
+    }
+}
+
+/// `add rd, rs1, rs2` with the mnemonic in bold and the operands coloured.
+fn syntax(name: &str, operands: &[Operand]) -> Markup {
+    let asm = operands
+        .iter()
+        .map(Operand::to_string)
+        .collect::<Vec<_>>()
+        .join(", ");
+    html! {
+        span.mn { (name) }
+        @if !asm.is_empty() { " " (paint(&asm, operands)) }
+    }
+}
+
+/// Colours the words of `text` that name one of `operands` by the field they fill.
+fn paint(text: &str, operands: &[Operand]) -> Markup {
+    let field = |token: &str| {
+        operands
+            .iter()
+            .flat_map(|o| o.words())
+            .find(|&&(word, _)| word == token)
+            .map(|&(_, field)| field)
+    };
+    html! {
+        @for token in tokens(text) {
+            @match field(token) {
+                Some(field) => span class={ "t-" (field) } { (token) },
+                None => (token),
+            }
+        }
+    }
+}
+
+/// Splits `text` into words (alphanumerics and `_`) and the runs between them.
+fn tokens(text: &str) -> Vec<&str> {
+    let is_word = |c: char| c.is_alphanumeric() || c == '_';
+    let mut tokens = Vec::new();
+    let mut start = 0;
+    for (i, c) in text.char_indices().skip(1) {
+        let prev = text[..i].chars().next_back().is_some_and(is_word);
+        if is_word(c) != prev {
+            tokens.push(&text[start..i]);
+            start = i;
+        }
+    }
+    if start < text.len() {
+        tokens.push(&text[start..]);
+    }
+    tokens
 }
