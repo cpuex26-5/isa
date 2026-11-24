@@ -4,6 +4,7 @@ use indexmap::IndexMap;
 
 use crate::Error;
 
+#[derive(Clone)]
 pub(crate) struct Format {
     pub(crate) name: String,
     /// From the most significant bit.
@@ -11,12 +12,14 @@ pub(crate) struct Format {
 }
 
 /// A field of a format, at instruction bits `hi` down to `lo`.
+#[derive(Clone)]
 pub(crate) struct Slot {
     pub(crate) hi: u32,
     pub(crate) lo: u32,
     pub(crate) kind: SlotKind,
 }
 
+#[derive(Clone)]
 pub(crate) enum SlotKind {
     Field(String),
     /// `bits[k]` is the immediate bit placed at instruction bit `hi - k`.
@@ -70,6 +73,13 @@ impl Format {
         })
     }
 
+    /// The slot of the non-immediate field `name`.
+    pub(crate) fn field(&self, name: &str) -> Option<&Slot> {
+        self.slots
+            .iter()
+            .find(|slot| matches!(&slot.kind, SlotKind::Field(f) if f == name))
+    }
+
     /// The instruction bit that holds immediate bit `bit`.
     pub(crate) fn imm_pos(&self, bit: u32) -> Option<u32> {
         self.slots.iter().find_map(|slot| match &slot.kind {
@@ -79,6 +89,13 @@ impl Format {
                 .map(|k| slot.hi - k as u32),
             SlotKind::Field(_) => None,
         })
+    }
+}
+
+impl Slot {
+    /// The instruction bits of this slot.
+    pub(crate) fn mask(&self) -> u32 {
+        (u32::MAX >> (31 - self.hi)) & (u32::MAX << self.lo)
     }
 }
 

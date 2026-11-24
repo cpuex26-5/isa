@@ -2,11 +2,13 @@
 #![expect(dead_code, reason = "read by the doc generator")]
 
 mod format;
+mod insn;
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer};
 
 use crate::format::Format;
+use crate::insn::{Instruction, Pseudo, RawInstruction};
 
 /// The ISA described by `isa.toml`.
 pub struct Isa {
@@ -14,8 +16,8 @@ pub struct Isa {
     pub(crate) formats: Vec<Format>,
     pub(crate) registers: Registers,
     pub(crate) mmio: Vec<Mmio>,
-    pub(crate) instructions: Vec<RawInstruction>,
-    pub(crate) pseudo: Vec<toml::Value>,
+    pub(crate) instructions: Vec<Instruction>,
+    pub(crate) pseudo: Vec<Pseudo>,
     pub(crate) notes: Vec<Note>,
 }
 
@@ -27,13 +29,18 @@ impl Isa {
             .formats
             .iter()
             .map(|(name, layout)| Format::parse(name, layout, &src.fields))
+            .collect::<Result<Vec<_>, _>>()?;
+        let instructions = src
+            .instructions
+            .into_iter()
+            .map(|raw| Instruction::new(raw, &formats))
             .collect::<Result<_, _>>()?;
         Ok(Isa {
             notation: src.notation,
             formats,
             registers: src.registers,
             mmio: src.mmio,
-            instructions: src.instructions,
+            instructions,
             pseudo: src.pseudo,
             notes: src.notes,
         })
@@ -42,6 +49,10 @@ impl Isa {
     /// The `isa.toml` of this repository, embedded at build time.
     pub fn embedded() -> Result<Isa, Error> {
         Isa::parse(include_str!("../isa.toml"))
+    }
+
+    pub(crate) fn instruction(&self, name: &str) -> Option<&Instruction> {
+        self.instructions.iter().find(|insn| insn.name == name)
     }
 }
 
@@ -63,7 +74,7 @@ struct Source {
     registers: Registers,
     mmio: Vec<Mmio>,
     instructions: Vec<RawInstruction>,
-    pseudo: Vec<toml::Value>,
+    pseudo: Vec<Pseudo>,
     notes: Vec<Note>,
 }
 
@@ -138,16 +149,6 @@ impl Access {
 pub(crate) struct Note {
     pub(crate) title: String,
     pub(crate) body: String,
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct RawInstruction {
-    pub(crate) name: String,
-    pub(crate) enc: String,
-    pub(crate) asm: String,
-    pub(crate) desc: String,
-    pub(crate) op: String,
 }
 
 fn one_or_many<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
