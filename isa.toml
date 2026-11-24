@@ -1,0 +1,580 @@
+notation = [
+  { sym = "sext", desc = "sign extension to 32 bits" },
+  { sym = "M[a]", desc = "32-bit little-endian word in memory at byte address a" },
+  { sym = "x[i:j]", desc = "bits i down to j of x" },
+  { sym = "(c)", desc = "1 if condition c holds, 0 otherwise" },
+  { sym = "<u, ≥u", desc = "unsigned comparison (signed otherwise)" },
+  { sym = ">> / >>>", desc = "logical / arithmetic right shift" },
+  { sym = "+ − × / √", desc = "on f registers: float_spec-compatible single precision, always rounded to nearest, ties to even" },
+  { sym = "int / float", desc = "conversion to int32 / single precision, always rounded to nearest, ties to even" },
+]
+
+[fields]
+opcode = 7
+funct3 = 3
+funct7 = 7
+rd = 5
+rs1 = 5
+rs2 = 5
+
+[formats]
+R = "funct7 rs2 rs1 funct3 rd opcode"
+I = "imm[11:0] rs1 funct3 rd opcode"
+S = "imm[11:5] rs2 rs1 funct3 imm[4:0] opcode"
+B = "imm[12|10:5] rs2 rs1 funct3 imm[4:1|11] opcode"
+U = "imm[19:0] rd opcode"
+J = "imm[20|10:1|11|19:12] rd opcode"
+
+[registers]
+x = [
+  { abi = "zero", role = "always zero" },
+  { abi = "ra", role = "return address", saver = "caller" },
+  { abi = "sp", role = "stack pointer", saver = "callee" },
+  { abi = "gp", role = "global pointer" },
+  { abi = "tp", role = "thread pointer" },
+  { abi = "t0", role = "temporary", saver = "caller" },
+  { abi = "t1", role = "temporary", saver = "caller" },
+  { abi = "t2", role = "temporary", saver = "caller" },
+  { abi = [
+    "s0",
+    "fp",
+  ], role = "frame pointer", saver = "callee" },
+  { abi = "s1", role = "saved", saver = "callee" },
+  { abi = "a0", role = "argument / return value", saver = "caller" },
+  { abi = "a1", role = "argument / return value", saver = "caller" },
+  { abi = "a2", role = "argument", saver = "caller" },
+  { abi = "a3", role = "argument", saver = "caller" },
+  { abi = "a4", role = "argument", saver = "caller" },
+  { abi = "a5", role = "argument", saver = "caller" },
+  { abi = "a6", role = "argument", saver = "caller" },
+  { abi = "a7", role = "argument", saver = "caller" },
+  { abi = "s2", role = "saved", saver = "callee" },
+  { abi = "s3", role = "saved", saver = "callee" },
+  { abi = "s4", role = "saved", saver = "callee" },
+  { abi = "s5", role = "saved", saver = "callee" },
+  { abi = "s6", role = "saved", saver = "callee" },
+  { abi = "s7", role = "saved", saver = "callee" },
+  { abi = "s8", role = "saved", saver = "callee" },
+  { abi = "s9", role = "saved", saver = "callee" },
+  { abi = "s10", role = "saved", saver = "callee" },
+  { abi = "s11", role = "saved", saver = "callee" },
+  { abi = "t3", role = "temporary", saver = "caller" },
+  { abi = "t4", role = "temporary", saver = "caller" },
+  { abi = "t5", role = "temporary", saver = "caller" },
+  { abi = "t6", role = "temporary", saver = "caller" },
+]
+f = [
+  { abi = "ft0", role = "temporary", saver = "caller" },
+  { abi = "ft1", role = "temporary", saver = "caller" },
+  { abi = "ft2", role = "temporary", saver = "caller" },
+  { abi = "ft3", role = "temporary", saver = "caller" },
+  { abi = "ft4", role = "temporary", saver = "caller" },
+  { abi = "ft5", role = "temporary", saver = "caller" },
+  { abi = "ft6", role = "temporary", saver = "caller" },
+  { abi = "ft7", role = "temporary", saver = "caller" },
+  { abi = "fs0", role = "saved", saver = "callee" },
+  { abi = "fs1", role = "saved", saver = "callee" },
+  { abi = "fa0", role = "argument / return value", saver = "caller" },
+  { abi = "fa1", role = "argument / return value", saver = "caller" },
+  { abi = "fa2", role = "argument", saver = "caller" },
+  { abi = "fa3", role = "argument", saver = "caller" },
+  { abi = "fa4", role = "argument", saver = "caller" },
+  { abi = "fa5", role = "argument", saver = "caller" },
+  { abi = "fa6", role = "argument", saver = "caller" },
+  { abi = "fa7", role = "argument", saver = "caller" },
+  { abi = "fs2", role = "saved", saver = "callee" },
+  { abi = "fs3", role = "saved", saver = "callee" },
+  { abi = "fs4", role = "saved", saver = "callee" },
+  { abi = "fs5", role = "saved", saver = "callee" },
+  { abi = "fs6", role = "saved", saver = "callee" },
+  { abi = "fs7", role = "saved", saver = "callee" },
+  { abi = "fs8", role = "saved", saver = "callee" },
+  { abi = "fs9", role = "saved", saver = "callee" },
+  { abi = "fs10", role = "saved", saver = "callee" },
+  { abi = "fs11", role = "saved", saver = "callee" },
+  { abi = "ft8", role = "temporary", saver = "caller" },
+  { abi = "ft9", role = "temporary", saver = "caller" },
+  { abi = "ft10", role = "temporary", saver = "caller" },
+  { abi = "ft11", role = "temporary", saver = "caller" },
+]
+
+[[mmio]]
+addr = 0xffff0000
+name = "UART_TX_DATA"
+dir = "w"
+desc = "send bits[7:0] through UART"
+
+[[mmio]]
+addr = 0xffff0004
+name = "UART_RX_DATA"
+dir = "r"
+desc = "read 1 byte to bits[7:0] through UART"
+
+[[mmio]]
+addr = 0xffff0008
+name = "UART_STATUS"
+dir = "r"
+desc = "UART status: [3:0] = { RX_OVERRUN, RX_ERROR, TX_READY, RX_VALID }"
+
+[[mmio]]
+addr = 0xffff0010
+name = "SEVENSEG_DATA"
+dir = "w"
+desc = "bits [31:0] as seven-segment display"
+
+[[instructions]]
+name = "add"
+enc = "R opcode=0110011 funct3=000 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "add"
+op = "rd ← rs1 + rs2"
+
+[[instructions]]
+name = "sub"
+enc = "R opcode=0110011 funct3=000 funct7=0100000"
+asm = "rd, rs1, rs2"
+desc = "subtract"
+op = "rd ← rs1 − rs2"
+
+[[instructions]]
+name = "sll"
+enc = "R opcode=0110011 funct3=001 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "shift left logical"
+op = "rd ← rs1 << rs2[4:0]"
+
+[[instructions]]
+name = "slt"
+enc = "R opcode=0110011 funct3=010 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "set less than"
+op = "rd ← (rs1 < rs2)"
+
+[[instructions]]
+name = "sltu"
+enc = "R opcode=0110011 funct3=011 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "set less than unsigned"
+op = "rd ← (rs1 <u rs2)"
+
+[[instructions]]
+name = "xor"
+enc = "R opcode=0110011 funct3=100 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "exclusive or"
+op = "rd ← rs1 ^ rs2"
+
+[[instructions]]
+name = "srl"
+enc = "R opcode=0110011 funct3=101 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "shift right logical"
+op = "rd ← rs1 >> rs2[4:0]"
+
+[[instructions]]
+name = "sra"
+enc = "R opcode=0110011 funct3=101 funct7=0100000"
+asm = "rd, rs1, rs2"
+desc = "shift right arithmetic"
+op = "rd ← rs1 >>> rs2[4:0]"
+
+[[instructions]]
+name = "or"
+enc = "R opcode=0110011 funct3=110 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "or"
+op = "rd ← rs1 | rs2"
+
+[[instructions]]
+name = "and"
+enc = "R opcode=0110011 funct3=111 funct7=0000000"
+asm = "rd, rs1, rs2"
+desc = "and"
+op = "rd ← rs1 & rs2"
+
+[[instructions]]
+name = "addi"
+enc = "I opcode=0010011 funct3=000"
+asm = "rd, rs1, imm"
+desc = "add immediate"
+op = "rd ← rs1 + sext(imm)"
+
+[[instructions]]
+name = "slti"
+enc = "I opcode=0010011 funct3=010"
+asm = "rd, rs1, imm"
+desc = "set less than immediate"
+op = "rd ← (rs1 < sext(imm))"
+
+[[instructions]]
+name = "sltiu"
+enc = "I opcode=0010011 funct3=011"
+asm = "rd, rs1, imm"
+desc = "set less than immediate unsigned"
+op = "rd ← (rs1 <u sext(imm))"
+
+[[instructions]]
+name = "xori"
+enc = "I opcode=0010011 funct3=100"
+asm = "rd, rs1, imm"
+desc = "exclusive or immediate"
+op = "rd ← rs1 ^ sext(imm)"
+
+[[instructions]]
+name = "ori"
+enc = "I opcode=0010011 funct3=110"
+asm = "rd, rs1, imm"
+desc = "or immediate"
+op = "rd ← rs1 | sext(imm)"
+
+[[instructions]]
+name = "andi"
+enc = "I opcode=0010011 funct3=111"
+asm = "rd, rs1, imm"
+desc = "and immediate"
+op = "rd ← rs1 & sext(imm)"
+
+[[instructions]]
+name = "slli"
+enc = "I opcode=0010011 funct3=001 imm[11:5]=0000000"
+asm = "rd, rs1, shamt"
+desc = "shift left logical immediate"
+op = "rd ← rs1 << shamt"
+
+[[instructions]]
+name = "srli"
+enc = "I opcode=0010011 funct3=101 imm[11:5]=0000000"
+asm = "rd, rs1, shamt"
+desc = "shift right logical immediate"
+op = "rd ← rs1 >> shamt"
+
+[[instructions]]
+name = "srai"
+enc = "I opcode=0010011 funct3=101 imm[11:5]=0100000"
+asm = "rd, rs1, shamt"
+desc = "shift right arithmetic immediate"
+op = "rd ← rs1 >>> shamt"
+
+[[instructions]]
+name = "lui"
+enc = "U opcode=0110111"
+asm = "rd, uimm"
+desc = "load upper immediate"
+op = "rd ← uimm << 12"
+
+[[instructions]]
+name = "auipc"
+enc = "U opcode=0010111"
+asm = "rd, uimm"
+desc = "add upper immediate to pc"
+op = "rd ← pc + (uimm << 12)"
+
+[[instructions]]
+name = "lw"
+enc = "I opcode=0000011 funct3=010"
+asm = "rd, imm(rs1)"
+desc = "load word"
+op = "rd ← M[rs1 + sext(imm)]"
+
+[[instructions]]
+name = "sw"
+enc = "S opcode=0100011 funct3=010"
+asm = "rs2, imm(rs1)"
+desc = "store word"
+op = "M[rs1 + sext(imm)] ← rs2"
+
+[[instructions]]
+name = "beq"
+enc = "B opcode=1100011 funct3=000"
+asm = "rs1, rs2, label"
+desc = "branch if equal"
+op = "if (rs1 = rs2) pc ← label"
+
+[[instructions]]
+name = "bne"
+enc = "B opcode=1100011 funct3=001"
+asm = "rs1, rs2, label"
+desc = "branch if not equal"
+op = "if (rs1 ≠ rs2) pc ← label"
+
+[[instructions]]
+name = "blt"
+enc = "B opcode=1100011 funct3=100"
+asm = "rs1, rs2, label"
+desc = "branch if less than"
+op = "if (rs1 < rs2) pc ← label"
+
+[[instructions]]
+name = "bge"
+enc = "B opcode=1100011 funct3=101"
+asm = "rs1, rs2, label"
+desc = "branch if greater or equal"
+op = "if (rs1 ≥ rs2) pc ← label"
+
+[[instructions]]
+name = "jal"
+enc = "J opcode=1101111"
+asm = "rd, label"
+desc = "jump and link"
+op = "rd ← pc + 4; pc ← label"
+
+[[instructions]]
+name = "jalr"
+enc = "I opcode=1100111 funct3=000"
+asm = "rd, imm(rs1)"
+desc = "jump and link register"
+op = "rd ← pc + 4; pc ← (rs1 + sext(imm)) & ~1"
+
+[[instructions]]
+name = "ebreak"
+enc = "I opcode=1110011 funct3=000 rd=00000 rs1=00000 imm[11:0]=000000000001"
+asm = ""
+desc = "environment break"
+op = "stop"
+
+[[instructions]]
+name = "fadd"
+enc = "R opcode=1010011 funct3=000 funct7=0000000"
+asm = "fd, fs1, fs2"
+desc = "float add"
+op = "fd ← fs1 + fs2"
+
+[[instructions]]
+name = "fsub"
+enc = "R opcode=1010011 funct3=000 funct7=0000100"
+asm = "fd, fs1, fs2"
+desc = "float subtract"
+op = "fd ← fs1 − fs2"
+
+[[instructions]]
+name = "fmul"
+enc = "R opcode=1010011 funct3=000 funct7=0001000"
+asm = "fd, fs1, fs2"
+desc = "float multiply"
+op = "fd ← fs1 × fs2"
+
+[[instructions]]
+name = "fdiv"
+enc = "R opcode=1010011 funct3=000 funct7=0001100"
+asm = "fd, fs1, fs2"
+desc = "float divide"
+op = "fd ← fs1 / fs2"
+
+[[instructions]]
+name = "fsqrt"
+enc = "R opcode=1010011 funct3=000 funct7=0101100 rs2=00000"
+asm = "fd, fs1"
+desc = "float square root"
+op = "fd ← √fs1"
+
+[[instructions]]
+name = "fmin"
+enc = "R opcode=1010011 funct3=000 funct7=0010100"
+asm = "fd, fs1, fs2"
+desc = "float minimum"
+op = "fd ← min(fs1, fs2)"
+
+[[instructions]]
+name = "fmax"
+enc = "R opcode=1010011 funct3=001 funct7=0010100"
+asm = "fd, fs1, fs2"
+desc = "float maximum"
+op = "fd ← max(fs1, fs2)"
+
+[[instructions]]
+name = "feq"
+enc = "R opcode=1010011 funct3=010 funct7=1010000"
+asm = "rd, fs1, fs2"
+desc = "float equal"
+op = "rd ← (fs1 = fs2)"
+
+[[instructions]]
+name = "flt"
+enc = "R opcode=1010011 funct3=001 funct7=1010000"
+asm = "rd, fs1, fs2"
+desc = "float less than"
+op = "rd ← (fs1 < fs2)"
+
+[[instructions]]
+name = "fle"
+enc = "R opcode=1010011 funct3=000 funct7=1010000"
+asm = "rd, fs1, fs2"
+desc = "float less or equal"
+op = "rd ← (fs1 ≤ fs2)"
+
+[[instructions]]
+name = "fcvt.w.s"
+enc = "R opcode=1010011 funct3=000 funct7=1100000 rs2=00000"
+asm = "rd, fs1"
+desc = "float convert to word from single"
+op = "rd ← int(fs1)"
+
+[[instructions]]
+name = "fcvt.s.w"
+enc = "R opcode=1010011 funct3=000 funct7=1101000 rs2=00000"
+asm = "fd, rs1"
+desc = "float convert to single from word"
+op = "fd ← float(rs1)"
+
+[[instructions]]
+name = "fmv.x.w"
+enc = "R opcode=1010011 funct3=000 funct7=1110000 rs2=00000"
+asm = "rd, fs1"
+desc = "move float bits to integer register"
+op = "rd ← fs1 as bits"
+
+[[instructions]]
+name = "fmv.w.x"
+enc = "R opcode=1010011 funct3=000 funct7=1111000 rs2=00000"
+asm = "fd, rs1"
+desc = "move integer bits to float register"
+op = "fd ← rs1 as bits"
+
+[[instructions]]
+name = "flw"
+enc = "I opcode=0000111 funct3=010"
+asm = "fd, imm(rs1)"
+desc = "float load word"
+op = "fd ← M[rs1 + sext(imm)]"
+
+[[instructions]]
+name = "fsw"
+enc = "S opcode=0100111 funct3=010"
+asm = "fs2, imm(rs1)"
+desc = "float store word"
+op = "M[rs1 + sext(imm)] ← fs2"
+
+[[pseudo]]
+name = "nop"
+asm = ""
+desc = "no operation"
+op = "does none"
+expand = [{ to = ["addi x0, x0, 0"] }]
+
+[[pseudo]]
+name = "li"
+asm = "rd, imm"
+desc = "load immediate"
+op = "rd ← imm"
+expand = [
+  { if = "imm fits addi", to = [
+    "addi rd, x0, imm",
+  ] },
+  { to = [
+    "lui rd, %hi(imm)",
+    "addi rd, rd, %lo(imm)",
+  ] },
+]
+
+[[pseudo]]
+name = "la"
+asm = "rd, label"
+desc = "load address"
+op = "rd ← label"
+expand = [{ to = ["lui rd, %hi(label)", "addi rd, rd, %lo(label)"] }]
+
+[[pseudo]]
+name = "mv"
+asm = "rd, rs1"
+desc = "move"
+op = "rd ← rs1"
+expand = [{ to = ["addi rd, rs1, 0"] }]
+
+[[pseudo]]
+name = "not"
+asm = "rd, rs1"
+desc = "not"
+op = "rd ← ~rs1"
+expand = [{ to = ["xori rd, rs1, -1"] }]
+
+[[pseudo]]
+name = "neg"
+asm = "rd, rs1"
+desc = "negate"
+op = "rd ← −rs1"
+expand = [{ to = ["sub rd, x0, rs1"] }]
+
+[[pseudo]]
+name = "seqz"
+asm = "rd, rs1"
+desc = "set if equal to zero"
+op = "rd ← (rs1 = 0)"
+expand = [{ to = ["sltiu rd, rs1, 1"] }]
+
+[[pseudo]]
+name = "snez"
+asm = "rd, rs1"
+desc = "set if not equal to zero"
+op = "rd ← (rs1 ≠ 0)"
+expand = [{ to = ["sltu rd, x0, rs1"] }]
+
+[[pseudo]]
+name = "beqz"
+asm = "rs1, label"
+desc = "branch if equal to zero"
+op = "if (rs1 = 0) pc ← label"
+expand = [{ to = ["beq rs1, x0, label"] }]
+
+[[pseudo]]
+name = "bnez"
+asm = "rs1, label"
+desc = "branch if not equal to zero"
+op = "if (rs1 ≠ 0) pc ← label"
+expand = [{ to = ["bne rs1, x0, label"] }]
+
+[[pseudo]]
+name = "bgt"
+asm = "rs1, rs2, label"
+desc = "branch if greater than"
+op = "if (rs1 > rs2) pc ← label"
+expand = [{ to = ["blt rs2, rs1, label"] }]
+
+[[pseudo]]
+name = "ble"
+asm = "rs1, rs2, label"
+desc = "branch if less or equal"
+op = "if (rs1 ≤ rs2) pc ← label"
+expand = [{ to = ["bge rs2, rs1, label"] }]
+
+[[pseudo]]
+name = "j"
+asm = "label"
+desc = "jump"
+op = "pc ← label"
+expand = [{ to = ["jal x0, label"] }]
+
+[[pseudo]]
+name = "jr"
+asm = "rs1"
+desc = "jump register"
+op = "pc ← rs1"
+expand = [{ to = ["jalr x0, 0(rs1)"] }]
+
+[[pseudo]]
+name = "ret"
+asm = ""
+desc = "return"
+op = "pc ← ra"
+expand = [{ to = ["jalr x0, 0(ra)"] }]
+
+[[pseudo]]
+name = "call"
+asm = "label"
+desc = "call"
+op = "ra ← pc + 4; pc ← label"
+expand = [{ to = ["jal ra, label"] }]
+
+[[notes]]
+title = "Instruction memory mapping"
+body = """
+- 64 KiB [0x00000000, 0x0000FFFF].
+- The entry point is 0.
+"""
+
+[[notes]]
+title = "Data memory mapping"
+body = """
+- 128 MiB [0x00000000, 0x07FFFFFF].
+- The initial stack pointer is 0x08000000, right above the top.
+- The static field starts from the bottom (0x0), and the initial heap pointer is right above.
+"""
